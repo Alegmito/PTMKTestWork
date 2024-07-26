@@ -12,10 +12,11 @@ namespace PTMKTestWork
 {
   public interface IEmployeeRepository : IDisposable
   {
-    Task<IEnumerable<Employee>> GetAllEmployees();
-    Task<IEnumerable<Employee>> GetMaleEmployeesWithSurnameStartsWithF();
+    Task AddEmployees(List<Employee> employees);
+    Task<IEnumerable<Employee>> GetAllEmployeesAsync();
+    Task<IEnumerable<Employee>> GetMaleEmployeesWithSurnameStartsWithFAsync();
 
-    Task InsertEmployee(Employee employee);
+    Task InsertEmployeeAsync(Employee employee);
   }
 
   public class EmployeeRepository : IEmployeeRepository, IDisposable
@@ -46,19 +47,26 @@ namespace PTMKTestWork
       GC.SuppressFinalize(this);
     }
 
-    public async Task<IEnumerable<Employee>> GetAllEmployees()
+    public async Task<IEnumerable<Employee>> GetAllEmployeesAsync()
     {
-      return await _context.Employees.AsQueryable().ToListAsync();
+      return await _context.Employees.AsQueryable().OrderBy(emp => emp.FullName).ToListAsync();
     }
 
-    public async Task<IEnumerable<Employee>> GetMaleEmployeesWithSurnameStartsWithF()
+    public async Task<IEnumerable<Employee>> GetMaleEmployeesWithSurnameStartsWithFAsync()
     {
       return await _context.Employees.AsQueryable().Where(e => e.FullName.StartsWith('F')).Where(e=>e.Gender.Equals(Gender.Male)).ToListAsync();
     }
 
-    public async Task InsertEmployee(Employee employee)
+    public async Task InsertEmployeeAsync(Employee employee)
     {
-      throw new NotImplementedException();
+      await _context.Employees.AddAsync(employee);
+      await _context.SaveChangesAsync();
+    }
+
+    public async Task AddEmployees(List<Employee> employees)
+    {
+      await _context.AddRangeAsync(employees);
+      await _context.SaveChangesAsync();
     }
   }
 }

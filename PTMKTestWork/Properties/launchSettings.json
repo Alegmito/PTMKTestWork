@@ -12,7 +12,7 @@
     },
     "PTMKTestWork2": {
       "commandName": "Project",
-      "commandLineArgs": "2",
+      "commandLineArgs": "2 \u0022Friendly Fire\u0022 2000-4-26 Female",
       "sqlDebugging": true
     }
   }

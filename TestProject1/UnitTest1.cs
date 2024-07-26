@@ -6,7 +6,7 @@ namespace PTMKTests
   [TestClass]
   public class MainProgramTests
   {
-    private readonly Mock<ITaskRunner> TaskRunnerMock = new Mock<ITaskRunner>();
+    private readonly Mock<ITaskRunner> TaskRunnerMock = new();
 
     [TestMethod]
     public void RunTask_CallsInitializeDB_WhenFirstIsCalled()
@@ -24,7 +24,7 @@ namespace PTMKTests
       const int taskNumber = 2;
       TaskRunner.RunTask(TaskRunnerMock.Object, taskNumber, args);
 
-      TaskRunnerMock.Verify(mock => mock.CreateRecord(args), Times.Once);
+      TaskRunnerMock.Verify(mock => mock.CreateEmployeeAsync(args), Times.Once);
     }
 
     [TestMethod]
@@ -33,7 +33,7 @@ namespace PTMKTests
       const int taskNumber = 3;
       TaskRunner.RunTask(TaskRunnerMock.Object, taskNumber, []);
 
-      TaskRunnerMock.Verify(mock => mock.GetAllRecords(), Times.Once);
+      TaskRunnerMock.Verify(mock => mock.GetAllEmployeesAsync(), Times.Once);
     }
 
     [TestMethod]
@@ -42,7 +42,7 @@ namespace PTMKTests
       const int taskNumber = 4;
       TaskRunner.RunTask(TaskRunnerMock.Object, taskNumber, []);
 
-      TaskRunnerMock.Verify(mock => mock.FillWithRecords(), Times.Once);
+      TaskRunnerMock.Verify(mock => mock.FillWithRecordsAsync(50000), Times.Once);
     }
 
     [TestMethod]
@@ -51,7 +51,7 @@ namespace PTMKTests
       const int taskNumber = 5;
       TaskRunner.RunTask(TaskRunnerMock.Object, taskNumber, []);
 
-      TaskRunnerMock.Verify(mock => mock.GetMalesWithSurnameSartswithF(), Times.Once);
+      TaskRunnerMock.Verify(mock => mock.GetMalesWithSurnameSartswithFAsync(), Times.Once);
     }
 
 

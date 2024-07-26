@@ -4,9 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using PTMKTestWork.Models;
 using PTMKTestWork.Configuration;
-using FluentMigrator.Runner;
-using PTMKTestWork.Migrations;
-
 if (args.Length < 0)
 {
   Console.WriteLine("world!");
