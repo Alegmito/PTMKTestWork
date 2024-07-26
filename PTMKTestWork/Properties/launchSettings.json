@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "commandLineArgs": "",
+      "distributionName": ""
+    },
+    "PTMKTestWork1": {
+      "commandName": "Project",
+      "commandLineArgs": "1",
+      "sqlDebugging": true
+    },
+    "PTMKTestWork2": {
+      "commandName": "Project",
+      "commandLineArgs": "2",
+      "sqlDebugging": true
+    }
+  }
+}

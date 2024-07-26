@@ -1,6 +1,10 @@
-﻿using System;
+﻿using FluentMigrator.Runner;
+using Microsoft.EntityFrameworkCore;
+using PTMKTestWork.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,6 +12,17 @@ namespace PTMKTestWork
 {
   public class TaskRunner : ITaskRunner
   {
+    private readonly IEmployeeRepository employeeRepository;
+    private readonly DirectoryContext directoryContext;
+
+    public TaskRunner(IEmployeeRepository employeeRepository,
+      DirectoryContext directoryContext
+      )
+    {
+      this.employeeRepository = employeeRepository;
+      this.directoryContext = directoryContext;
+    }
+
     public TaskRunner() { }
     public void CreateRecord(string[] cmdRecordData)
     {
@@ -31,7 +46,7 @@ namespace PTMKTestWork
 
     public void InitializeDB()
     {
-      throw new NotImplementedException();
+      directoryContext.Database.MigrateAsync().Wait();
     }
 
     public static void RunTask(ITaskRunner taskRunner, int task, string[] args)
