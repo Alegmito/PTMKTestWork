@@ -42,7 +42,7 @@ namespace PTMKTestWork.Models
     [Required]
     public Gender Gender { get; set; }
 
-    public TimeSpan Age { get => DateTime.Now - BirthDate.ToDateTime(TimeOnly.MinValue); }
+    public int Age { get => TimeUtility.GetYears(BirthDate.ToDateTime(TimeOnly.MinValue), DateTime.Now); }
 
     public static Employee CreateEmployee(string[] employeeData)
     {

@@ -36,3 +36,5 @@ using (var scope = services.CreateScope())
   task,
   args);
 }
+
+Console.ReadLine();

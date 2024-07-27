@@ -2,6 +2,7 @@
 using PTMKTestWork.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -9,8 +10,9 @@ using System.Threading.Tasks;
 
 namespace PTMKTestWork
 {
-  public class TaskRunner : ITaskRunner
+    public class TaskRunner : ITaskRunner
   {
+    public static readonly int NumberOfGeneratedEmployees = 1000000;
     private readonly IEmployeeRepository employeeRepository;
     private readonly DirectoryContext directoryContext;
 
@@ -21,8 +23,7 @@ namespace PTMKTestWork
       this.employeeRepository = employeeRepository;
       this.directoryContext = directoryContext;
     }
-
-    public TaskRunner() { }
+    
     public async Task CreateEmployeeAsync(string[] cmdRecordData)
     {
       if (cmdRecordData.Length < 4)
@@ -37,7 +38,7 @@ namespace PTMKTestWork
       int bulkNumber = 1;
       Random rnd = new Random();
 
-      for (; bulkNumber * bulkSize <= 1000000; bulkNumber++)
+      for (; bulkNumber * bulkSize <= NumberOfGeneratedEmployees; bulkNumber++)
       {
         var employees = new List<Employee>();
 
@@ -46,8 +47,8 @@ namespace PTMKTestWork
           {
             ID = Guid.NewGuid(),
             FullName = Convert.ToChar(rnd.Next(0, 26) + 65).ToString(),
-            BirthDate = DateOnly.Parse("1990-09-21"),
-            Gender = (Gender) rnd.Next(1)
+            BirthDate = DateOnly.Parse($"{rnd.Next(1960, 2008)}-09-21"),
+            Gender = (Gender) rnd.Next(2)
           });
         
         await employeeRepository.AddEmployees(employees);  
@@ -57,17 +58,26 @@ namespace PTMKTestWork
     public async Task GetAllEmployeesAsync()
     {
       var employees = await employeeRepository.GetAllEmployeesAsync();
-      foreach (var item in employees)
-      {
-        Console.WriteLine($"{item.FullName}, BirthDate: {item.BirthDate}," +
-          $"Gender: {item.Gender.ToString()}, Age: {item.Age}");
-      }
+      TaskRunner.WriteEmployees(employees); 
     }
 
-    public async Task GetMalesWithSurnameSartswithFAsync()
+    public async Task GetMalesWithSurnameStartsWithFAsync()
     {
-      await employeeRepository.GetMaleEmployeesWithSurnameStartsWithFAsync();
+      var sw = Stopwatch.StartNew();
+      var employees = await employeeRepository.GetMalesWithSurnameStartsWithFAsync();
+      sw.Stop();
+      TaskRunner.WriteEmployees(employees);
+      Console.WriteLine($"Query completion time is (seconds): {sw.ElapsedMilliseconds / (double)1000}");
     }
+    public async Task GetMalesWithSurnameStartsWithFOptimizedAsync()
+    {
+      var sw = Stopwatch.StartNew();
+      var employees = await employeeRepository.GetMalesWithSurnameStartsWithFOptimizedAsync();
+      sw.Stop();
+      TaskRunner.WriteEmployees(employees);
+      Console.WriteLine($"Optimized Query completion time is (seconds): {sw.ElapsedMilliseconds / (double)1000}");
+    }
+
 
     public void InitializeDB()
     {
@@ -86,16 +96,30 @@ namespace PTMKTestWork
           break;
         case 4 : taskRunner.FillWithRecordsAsync().Wait();
           break;
-        case  5 : taskRunner.GetMalesWithSurnameSartswithFAsync().Wait();
+        case 6 : taskRunner.GetMalesWithSurnameStartsWithFAsync().Wait();
           break;
+        case 5 : taskRunner.GetMalesWithSurnameStartsWithFOptimizedAsync().Wait();
+          break;
+
         default: Console.WriteLine("No such thing is task is present");
           break;
       };
+
+      Console.WriteLine($"Task {task} is completed.");
     }
 
     public Task FillWithRecordsAsync()
     {
       throw new NotImplementedException();
+    }
+
+    public static void WriteEmployees(IEnumerable<Employee> employees)
+    {
+      foreach (var item in employees)
+      {
+        Console.WriteLine($"{item.FullName}, BirthDate: {item.BirthDate}," +
+          $"Gender: {item.Gender.ToString()}, Age: {item.Age}");
+      }
     }
   }
 
@@ -110,6 +134,7 @@ namespace PTMKTestWork
 
     Task FillWithRecordsAsync(int bulkSize = 50000);
 
-    Task GetMalesWithSurnameSartswithFAsync();
+    Task GetMalesWithSurnameStartsWithFAsync();
+    Task GetMalesWithSurnameStartsWithFOptimizedAsync();
   }
 }

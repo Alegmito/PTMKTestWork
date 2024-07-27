@@ -46,12 +46,21 @@ namespace PTMKTests
     }
 
     [TestMethod]
-    public void RunTask_CallsGetMales_WhenFirstIsCalled()
+    public void RunTask_CallsGetMalesOptimized_WhenFifthIsCalled()
     {
       const int taskNumber = 5;
       TaskRunner.RunTask(TaskRunnerMock.Object, taskNumber, []);
 
-      TaskRunnerMock.Verify(mock => mock.GetMalesWithSurnameSartswithFAsync(), Times.Once);
+      TaskRunnerMock.Verify(mock => mock.GetMalesWithSurnameStartsWithFOptimizedAsync(), Times.Once);
+    }
+
+    [TestMethod]
+    public void RunTask_CallsGetMales_WhenSixthIsCalled()
+    {
+      const int taskNumber = 6;
+      TaskRunner.RunTask(TaskRunnerMock.Object, taskNumber, []);
+
+      TaskRunnerMock.Verify(mock => mock.GetMalesWithSurnameStartsWithFAsync(), Times.Once);
     }
 
 

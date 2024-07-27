@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace PTMKTests
 {
-  [TestClass]
+    [TestClass]
   public class TaskRunnerTests
   {
     private readonly TaskRunner taskRunner;
@@ -43,22 +43,12 @@ namespace PTMKTests
     [TestMethod]
     public async Task GetAllEmployees_OutputsAllEmployees()
     {
-      const int employeeCount = 10;
-      var employees = new List<Employee>();
-      for (int i = 0; i < employeeCount; i++)
-        employees.Add(new Employee());
-
       StringWriter writer = new();
       Console.SetOut(writer);
-
-      employeeRepositoryMock.Setup(mock => mock.GetAllEmployeesAsync())
-        .Returns(Task.FromResult(employees.AsEnumerable()));
 
       await Task.Run(async () => await taskRunner.GetAllEmployeesAsync());
 
       employeeRepositoryMock.Verify(mock => mock.GetAllEmployeesAsync(), Times.Once);
-      var linesCount = writer.ToString().SplitToLines().Where(line => line != "").Count();
-      Assert.AreEqual(employeeCount, linesCount);
     }
 
     [TestMethod]
@@ -71,9 +61,31 @@ namespace PTMKTests
     }
 
     [TestMethod]
-    public async Task GetMaleEmployeesNameStartsWithF_PrintsEmployees()
+    public async Task GetMaleEmployeesNameStartsWithF_GetsEmployeesAndBenchmark()
     {
+      StringWriter writer = new();
+      Console.SetOut(writer);
 
+      await Task.Run(async () => await taskRunner.GetMalesWithSurnameStartsWithFAsync());
+
+      employeeRepositoryMock.Verify(mock => mock.GetMalesWithSurnameStartsWithFAsync(), Times.Once);
+      var linesCount = writer.ToString().SplitToLines().Where(line => line != "").Count();
+      writer.ToString().Contains("Query completion time is");
+    }
+
+    [TestMethod]
+    public void WriteEmployee_OuputsEmployees()
+    {
+      const int employeeCount = 10;
+      var employees = new List<Employee>();
+      for (int i = 0; i < employeeCount; i++)
+        employees.Add(new Employee());
+      
+      StringWriter writer = new();
+      Console.SetOut(writer);
+      TaskRunner.WriteEmployees(employees);
+      var linesCount = writer.ToString().SplitToLines().Where(line => line != "").Count();
+      Assert.AreEqual(employeeCount, linesCount);  
     }
   }
 }
