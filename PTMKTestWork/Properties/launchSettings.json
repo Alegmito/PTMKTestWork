@@ -12,7 +12,7 @@
     },
     "PTMKTestWork2": {
       "commandName": "Project",
-      "commandLineArgs": "2",
+      "commandLineArgs": "5",
       "sqlDebugging": true
     }
   }

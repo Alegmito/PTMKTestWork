@@ -11,6 +11,9 @@ namespace PTMKTestWork.Models
 
   public class DirectoryContext : DbContext
   {
+
+    // For testing purposes
+    public DirectoryContext() { }
     public DirectoryContext(DbContextOptions<DirectoryContext> options)
       : base(options)
     { }
@@ -38,6 +41,19 @@ namespace PTMKTestWork.Models
 
     [Required]
     public Gender Gender { get; set; }
+
+    public int Age { get => TimeUtility.GetYears(BirthDate.ToDateTime(TimeOnly.MinValue), DateTime.Now); }
+
+    public static Employee CreateEmployee(string[] employeeData)
+    {
+      return new()
+      {
+        ID = Guid.NewGuid(),
+        FullName = employeeData[0],
+        BirthDate = DateOnly.Parse(employeeData[1]),
+        Gender = Enum.Parse<Gender>(employeeData[2])
+      };
+    }
   }
 
   public enum Gender

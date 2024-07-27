@@ -1,8 +1,8 @@
-﻿using FluentMigrator.Runner;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PTMKTestWork.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,8 +10,9 @@ using System.Threading.Tasks;
 
 namespace PTMKTestWork
 {
-  public class TaskRunner : ITaskRunner
+    public class TaskRunner : ITaskRunner
   {
+    public static readonly int NumberOfGeneratedEmployees = 1000000;
     private readonly IEmployeeRepository employeeRepository;
     private readonly DirectoryContext directoryContext;
 
@@ -22,27 +23,61 @@ namespace PTMKTestWork
       this.employeeRepository = employeeRepository;
       this.directoryContext = directoryContext;
     }
-
-    public TaskRunner() { }
-    public void CreateRecord(string[] cmdRecordData)
+    
+    public async Task CreateEmployeeAsync(string[] cmdRecordData)
     {
-      throw new NotImplementedException();
+      if (cmdRecordData.Length < 4)
+        throw new ArgumentException("Not enough arguments");
+
+      await employeeRepository
+        .InsertEmployeeAsync(Employee.CreateEmployee(cmdRecordData.Skip(1).ToArray()));
     }
 
-    public void FillWithRecords()
-    {
-      throw new NotImplementedException();
+    public async Task FillWithRecordsAsync(int bulkSize = 50000)
+    {      
+      int bulkNumber = 1;
+      Random rnd = new Random();
+
+      for (; bulkNumber * bulkSize <= NumberOfGeneratedEmployees; bulkNumber++)
+      {
+        var employees = new List<Employee>();
+
+        for (int i = 0; i < bulkSize; i++)
+          employees.Add(new Employee()
+          {
+            ID = Guid.NewGuid(),
+            FullName = Convert.ToChar(rnd.Next(0, 26) + 65).ToString(),
+            BirthDate = DateOnly.Parse($"{rnd.Next(1960, 2008)}-09-21"),
+            Gender = (Gender) rnd.Next(2)
+          });
+        
+        await employeeRepository.AddEmployees(employees);  
+      }
     }
 
-    public void GetAllRecords()
+    public async Task GetAllEmployeesAsync()
     {
-      throw new NotImplementedException();
+      var employees = await employeeRepository.GetAllEmployeesAsync();
+      TaskRunner.WriteEmployees(employees); 
     }
 
-    public void GetMalesWithSurnameSartswithF()
+    public async Task GetMalesWithSurnameStartsWithFAsync()
     {
-      throw new NotImplementedException();
+      var sw = Stopwatch.StartNew();
+      var employees = await employeeRepository.GetMalesWithSurnameStartsWithFAsync();
+      sw.Stop();
+      TaskRunner.WriteEmployees(employees);
+      Console.WriteLine($"Query completion time is (seconds): {sw.ElapsedMilliseconds / (double)1000}");
     }
+    public async Task GetMalesWithSurnameStartsWithFOptimizedAsync()
+    {
+      var sw = Stopwatch.StartNew();
+      var employees = await employeeRepository.GetMalesWithSurnameStartsWithFOptimizedAsync();
+      sw.Stop();
+      TaskRunner.WriteEmployees(employees);
+      Console.WriteLine($"Optimized Query completion time is (seconds): {sw.ElapsedMilliseconds / (double)1000}");
+    }
+
 
     public void InitializeDB()
     {
@@ -55,17 +90,36 @@ namespace PTMKTestWork
       {
         case 1: taskRunner.InitializeDB();
           break;
-        case 2 : taskRunner.CreateRecord(args);
+        case 2 : taskRunner.CreateEmployeeAsync(args).Wait();
           break;
-        case 3 : taskRunner.GetAllRecords();
+        case 3 : taskRunner.GetAllEmployeesAsync().Wait();
           break;
-        case 4 : taskRunner.FillWithRecords();
+        case 4 : taskRunner.FillWithRecordsAsync().Wait();
           break;
-        case  5 : taskRunner.GetMalesWithSurnameSartswithF();
+        case 6 : taskRunner.GetMalesWithSurnameStartsWithFAsync().Wait();
           break;
+        case 5 : taskRunner.GetMalesWithSurnameStartsWithFOptimizedAsync().Wait();
+          break;
+
         default: Console.WriteLine("No such thing is task is present");
           break;
       };
+
+      Console.WriteLine($"Task {task} is completed.");
+    }
+
+    public Task FillWithRecordsAsync()
+    {
+      throw new NotImplementedException();
+    }
+
+    public static void WriteEmployees(IEnumerable<Employee> employees)
+    {
+      foreach (var item in employees)
+      {
+        Console.WriteLine($"{item.FullName}, BirthDate: {item.BirthDate}," +
+          $"Gender: {item.Gender.ToString()}, Age: {item.Age}");
+      }
     }
   }
 
@@ -74,19 +128,13 @@ namespace PTMKTestWork
     void InitializeDB();
 
     //void CreateRecord(string fullName, DateOnly birthDate, Gender gender);
-    void CreateRecord(string[] cmdRecordData);
+    Task CreateEmployeeAsync(string[] cmdRecordData);
 
+    Task GetAllEmployeesAsync();
 
-    void GetAllRecords();
+    Task FillWithRecordsAsync(int bulkSize = 50000);
 
-    void FillWithRecords();
-
-    void GetMalesWithSurnameSartswithF();
-  }
-
-  internal enum Gender
-  {
-    Male,
-    Female
+    Task GetMalesWithSurnameStartsWithFAsync();
+    Task GetMalesWithSurnameStartsWithFOptimizedAsync();
   }
 }
